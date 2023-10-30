@@ -17,7 +17,7 @@ class Bandit:
         return np.random.random() < self.p
 
     def update(self, x):
-        self.N = x
+        self.N += x
         self.p_estimate = np.random.random()
 
 

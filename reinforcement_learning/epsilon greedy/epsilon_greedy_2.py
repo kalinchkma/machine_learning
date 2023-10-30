@@ -6,29 +6,30 @@ import math
 np.random.seed(42)
 
 NUM_TRIALS = 10000
-EPS = math.e
+EPS = 0.1
 BANDIT_PROBABILITIES = [0.2, 0.5, 0.75]
 
 
 class Bandit:
     def __init__(self, p) -> None:
+        # p: True win rate
         self.p = p
-        self.p_estimate = np.random.random()
-        self.N = np.random.random()
+        self.p_estimate = 0.0
+        self.N = 0.0  # number of samples collected so far
 
     def pull(self):
+        # Draw a 1 with probability p
         return np.random.random() < self.p
 
     def update(self, x):
-        self.N = x
-        self.p_estimate = np.random.random()
+        self.N += 1.0
+        self.p_estimate = ((self.N - 1) * self.p_estimate + x) / self.N
 
 
 def experiment():
     bandits = [Bandit(p) for p in BANDIT_PROBABILITIES]
 
     rewards = np.zeros(NUM_TRIALS)
-    print("reward:", rewards[0:5])
     num_of_time_explored = 0
     num_of_time_exploited = 0
     num_optimal = 0
@@ -36,6 +37,7 @@ def experiment():
     print("optimal j:", optimal_j)
 
     for i in range(NUM_TRIALS):
+        # use epsilon-greedy to select the next bandit
         if np.random.random() < EPS:
             num_of_time_explored += 1
             j = int(np.floor(random.sample(range(0, 3), 1))[0])
@@ -46,10 +48,13 @@ def experiment():
         if j == optimal_j:
             num_optimal += 1
 
+        # pull the arm for the bandit with the largest sample
         x = bandits[j].pull()
-        print(x)
+
+        # Update reward log
         rewards[i] = x
 
+        # update the distribution for the bandit whose arm we just pulled
         bandits[j].update(x)
 
     # print mean estimates for each bandit
